@@ -1,2 +1,2 @@
 # gowd
-WebDriver client in Go
+A WebDriver client in Go
