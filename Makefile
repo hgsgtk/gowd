@@ -1,4 +1,4 @@
-.PHONY: help build-terminal build-base golangci-lint init.golangci-lint test goimports
+.PHONY: help test goimports
 
 .DEFAULT_GOAL := help
 
