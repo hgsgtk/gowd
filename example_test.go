@@ -15,5 +15,4 @@ func Example() {
 	}
 
 	fmt.Println(browser.SessionID)
-	// Output: faked-session-id
 }
