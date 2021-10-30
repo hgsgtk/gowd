@@ -6,9 +6,13 @@ import (
 )
 
 func Example() {
-	driver := gowd.WebDriver{}
-	browser := driver.New()
+	// Assuming that chromedriver is already running in the local environment
+	// > $ chromedriver
+	driver := gowd.NewWebDriver()
+	browser, err := driver.New()
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(browser.SessionID)
-	// Output: faked-session-id
 }
