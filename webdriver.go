@@ -13,16 +13,16 @@ import (
 // See also https://www.selenium.dev/documentation/webdriver/.
 // Fixme: for multi-browser support, it is better to use interface.
 type WebDriver struct {
-	// remoteEndURL is a URL of "Remote end" node.
+	// RemoteEndURL is a URL of "Remote end" node.
 	// https://www.w3.org/TR/webdriver/#nodes
 	// > The remote end hosts the server side of the protocol.
-	remoteEndURL *url.URL
-	// client communicates with WebDriver Remote end.
+	RemoteEndURL *url.URL
+	// Client communicates with WebDriver Remote end.
 	// https://pkg.go.dev/net/http#Client
 	// > The Client's Transport typically has internal state (cached TCP connections),
 	// > so Clients should be reused instead of created as needed.
 	// > Clients are safe for concurrent use by multiple goroutines.
-	client *http.Client
+	Client *http.Client
 	// TODO: Add capabilities field
 }
 
@@ -60,8 +60,8 @@ func NewWebDriver() *WebDriver {
 		return nil
 	}
 	return &WebDriver{
-		remoteEndURL: ru,
-		client:       new(http.Client),
+		RemoteEndURL: ru,
+		Client:       new(http.Client),
 	}
 }
 
@@ -81,13 +81,14 @@ func (wd *WebDriver) New() (*Browser, error) {
 }
 `
 
-	u := wd.remoteEndURL.String() + "/session"
+	// https://www.w3.org/TR/webdriver/#new-session
+	u := wd.RemoteEndURL.String() + "/session"
 	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(rb))
 	if err != nil {
-		return nil, fmt.Errorf("can't create session request: %w", err)
+		return nil, fmt.Errorf("can't create a request: %w", err)
 	}
 
-	resp, err := wd.client.Do(req)
+	resp, err := wd.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("got http response error: %w", err)
 	}
@@ -110,6 +111,7 @@ func (wd *WebDriver) New() (*Browser, error) {
 
 	return &Browser{
 		SessionID: rns.Value.SessionID,
+		driver:    wd,
 	}, nil
 }
 
@@ -121,4 +123,28 @@ type SessionID string
 // Browser represents the state of a browser opened by WebDriver.
 type Browser struct {
 	SessionID SessionID
+	driver    *WebDriver
+}
+
+func (b *Browser) Close() error {
+	// https://www.w3.org/TR/webdriver/#delete-session
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID)
+	req, err := http.NewRequest(http.MethodDelete, u, nil)
+	if err != nil {
+		return fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }

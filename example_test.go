@@ -13,6 +13,11 @@ func Example() {
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		if err := browser.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	fmt.Println(browser.SessionID)
 }
