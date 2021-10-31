@@ -70,6 +70,7 @@ func NewWebDriver() *WebDriver {
 // Todo: Support multiple options such as "remote", "chromedriver", "geckodriver"...
 func (wd *WebDriver) New() (*Browser, error) {
 	// TODO: support other capabilities options
+	// TODO: enable users to set chromeOptions https://github.com/hgsgtk/gowd/pull/8#issuecomment-955629879
 	rb := `
 {
 	"capabilities": {

@@ -39,8 +39,14 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: go mod download
       - uses: nanasess/setup-chromedriver@master
-      - run: |
+      - name: Start chromedriver (Ubuntu, MacOS)
+        if: runner.os != 'Windows'
+        run: |
           export DISPLAY=:99
           chromedriver &
+      - name: Start chromedriver (Windows)
+        if: runner.os == 'Windows'
+        run: chromedriver &
+      # Run tests
       - name: Run tests
         run: make test
