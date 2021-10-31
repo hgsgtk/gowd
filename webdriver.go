@@ -1,6 +1,7 @@
 package gowd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -69,12 +70,13 @@ func NewWebDriver() *WebDriver {
 // Todo: Support multiple options such as "remote", "chromedriver", "geckodriver"...
 func (wd *WebDriver) New() (*Browser, error) {
 	// TODO: support other capabilities options
+	// TODO: enable users to set chromeOptions https://github.com/hgsgtk/gowd/pull/8#issuecomment-955629879
 	rb := `
 {
 	"capabilities": {
 		"alwaysMatch": {
 			"goog:chromeOptions": {
-				"args": ["--no-sandbox"]
+				"args": ["--no-sandbox", "--headless"]
 			}
 		}
 	}
@@ -147,4 +149,69 @@ func (b *Browser) Close() error {
 	}
 
 	return nil
+}
+
+func (b *Browser) NavigateTo(url string) error {
+	type rp struct {
+		URL string `json:"url"`
+	}
+	rpb := rp{
+		URL: url,
+	}
+	body, err := json.Marshal(rpb)
+	if err != nil {
+		return fmt.Errorf("can't marshal json body: %w", err)
+	}
+
+	// https://www.w3.org/TR/webdriver/#navigate-to
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
+	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (b *Browser) GetCurrentURL() (string, error) {
+	// https://www.w3.org/TR/webdriver/#get-current-url
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return "", fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return "", fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	type rf struct {
+		Value string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return "", fmt.Errorf("can't decode response: %w", err)
+	}
+
+	return rb.Value, nil
 }
