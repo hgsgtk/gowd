@@ -215,3 +215,83 @@ func (b *Browser) GetCurrentURL() (string, error) {
 
 	return rb.Value, nil
 }
+
+// webElementIdentifier is the string constant "element-6066-11e4-a52e-4f735466cecf".
+// https://www.w3.org/TR/webdriver/#elements
+// The old WebDriver JSON protocol uses `ELEMENT` key.
+const webElementIdentifier = "element-6066-11e4-a52e-4f735466cecf"
+
+// FindElement finds the element user wants to get.
+// https://www.w3.org/TR/webdriver/#find-element
+func (b *Browser) FindElement(locator LocatorStrategy, value string) (ElementID, error) {
+	type rp struct {
+		Using LocatorStrategy `json:"using"`
+		Value string          `json:"value"`
+	}
+	rpb := rp{
+		Using: locator,
+		Value: value,
+	}
+	body, err := json.Marshal(rpb)
+	if err != nil {
+		return "", fmt.Errorf("can't marshal json body: %w", err)
+	}
+
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/element"
+	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
+	if err != nil {
+		return "", fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return "", fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	/**
+	 * Response format is like this.
+	 *
+	 * {
+	 *  "value": {
+	 *      "element-6066-11e4-a52e-4f735466cecf": "84b10d39-94f5-4768-8457-dd218597a1e5"
+	 *  }
+	 * }
+	 */
+	type rf struct {
+		Value map[string]string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return "", fmt.Errorf("can't decode response: %w", err)
+	}
+
+	eID, ok := rb.Value[webElementIdentifier]
+	if !ok {
+		return "", fmt.Errorf("got empty element ID: value %#v", rb.Value)
+	}
+
+	return ElementID(eID), nil
+}
+
+// ElementID is an identifier of elements (ex. 84b10d39-94f5-4768-8457-dd218597a1e5).
+// https://www.w3.org/TR/webdriver/#elements
+type ElementID string
+
+// LocatorStrategy is the keyword used to search for elements in the current browsing context.
+// https://www.w3.org/TR/webdriver/#locator-strategies
+type LocatorStrategy string
+
+const (
+	CSS             LocatorStrategy = "css selector"
+	LinkText        LocatorStrategy = "link text"
+	PartialLinkText LocatorStrategy = "partial link text"
+	TagName         LocatorStrategy = "tag name"
+	Xpath           LocatorStrategy = "xpath"
+)

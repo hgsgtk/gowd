@@ -28,4 +28,9 @@ func Example() {
 	}
 	fmt.Println(url)
 	// Output: https://example.com/
+
+	_, err = browser.FindElement(gowd.TagName, "h1")
+	if err != nil {
+		panic(err)
+	}
 }
