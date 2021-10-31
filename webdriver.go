@@ -1,6 +1,7 @@
 package gowd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -130,6 +131,40 @@ func (b *Browser) Close() error {
 	// https://www.w3.org/TR/webdriver/#delete-session
 	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID)
 	req, err := http.NewRequest(http.MethodDelete, u, nil)
+	if err != nil {
+		return fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (b *Browser) NavigateTo(url string) error {
+	type rp struct {
+		URL string `json:"url"`
+	}
+	rpb := rp{
+		URL: url,
+	}
+	body, err := json.Marshal(rpb)
+	if err != nil {
+		return fmt.Errorf("can't marshal json body: %w", err)
+	}
+
+	// https://www.w3.org/TR/webdriver/#navigate-to
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
+	req, err := http.NewRequest(http.MethodGet, u, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("can't create a request: %w", err)
 	}

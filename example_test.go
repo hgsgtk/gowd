@@ -19,5 +19,10 @@ func Example() {
 		}
 	}()
 
+	if err := browser.NavigateTo("https://example.com/"); err != nil {
+		panic(err)
+	}
+
 	fmt.Println(browser.SessionID)
+	// Output: xxxx
 }
