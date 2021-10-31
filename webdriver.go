@@ -164,7 +164,7 @@ func (b *Browser) NavigateTo(url string) error {
 
 	// https://www.w3.org/TR/webdriver/#navigate-to
 	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
-	req, err := http.NewRequest(http.MethodGet, u, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("can't create a request: %w", err)
 	}
@@ -182,4 +182,35 @@ func (b *Browser) NavigateTo(url string) error {
 	}
 
 	return nil
+}
+
+func (b *Browser) GetCurrentURL() (string, error) {
+	// https://www.w3.org/TR/webdriver/#get-current-url
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return "", fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return "", fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	type rf struct {
+		Value string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return "", fmt.Errorf("can't decode response: %w", err)
+	}
+
+	return rb.Value, nil
 }

@@ -22,7 +22,10 @@ func Example() {
 	if err := browser.NavigateTo("https://example.com/"); err != nil {
 		panic(err)
 	}
-
-	fmt.Println(browser.SessionID)
-	// Output: xxxx
+	url, err := browser.GetCurrentURL()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(url)
+	// Output: https://example.com/
 }
