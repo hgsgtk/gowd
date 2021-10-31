@@ -8,7 +8,9 @@ jobs:
         platform: [
             ubuntu-latest,
             macos-latest,
-            windows-latest,
+            # Fixme: support windows platform
+            # https://github.com/hgsgtk/gowd/pull/8#issuecomment-955630354
+            # windows-latest,
         ]
     runs-on: ${{ matrix.platform }}
     steps:
