@@ -292,6 +292,6 @@ const (
 	CSS             LocatorStrategy = "css selector"
 	LinkText        LocatorStrategy = "link text"
 	PartialLinkText LocatorStrategy = "partial link text"
-	TagName                         = "tag name"
-	Xpath                           = "xpath"
+	TagName         LocatorStrategy = "tag name"
+	Xpath           LocatorStrategy = "xpath"
 )
