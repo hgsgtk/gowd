@@ -27,10 +27,18 @@ func Example() {
 		panic(err)
 	}
 	fmt.Println(url)
-	// Output: https://example.com/
 
-	_, err = browser.FindElement(gowd.TagName, "h1")
+	titleElement, err := browser.FindElement(gowd.TagName, "h1")
 	if err != nil {
 		panic(err)
 	}
+
+	title, err := titleElement.GetText()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(title)
+	// Output:
+	// https://example.com/
+	// Example Domain
 }
