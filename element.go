@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // ElementID is an identifier of elements (ex. 84b10d39-94f5-4768-8457-dd218597a1e5).
@@ -54,4 +55,31 @@ func (e *Element) GetText() (string, error) {
 	}
 
 	return rb.Value, nil
+}
+
+// Click clicks the element.
+// https://www.w3.org/TR/webdriver/#element-click
+func (e *Element) Click() error {
+	u := e.driver.RemoteEndURL.String() +
+		"/session/" + string(e.browser.SessionID) +
+		"/element/" + string(e.ID) + "/click"
+	// The request body should be JSON empty object.
+	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader("{}"))
+	if err != nil {
+		return fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := e.driver.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
