@@ -38,6 +38,15 @@ func Example() {
 		panic(err)
 	}
 	fmt.Println(title)
+
+	link, err := browser.FindElement(gowd.LinkText, "More information...")
+	if err != nil {
+		panic(err)
+	}
+	if err = link.Click(); err != nil {
+		panic(err)
+	}
+
 	// Output:
 	// https://example.com/
 	// Example Domain
