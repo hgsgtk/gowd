@@ -181,3 +181,8 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (*Element, 
 
 	return NewElement(ElementID(eID), b.driver, b), nil
 }
+
+// TakeScreenshot takes a screenshot of current browser.
+func (b *Browser) TakeScreenshot() ([]byte, error) {
+	return nil, nil
+}
