@@ -223,7 +223,7 @@ const webElementIdentifier = "element-6066-11e4-a52e-4f735466cecf"
 
 // FindElement finds the element user wants to get.
 // https://www.w3.org/TR/webdriver/#find-element
-func (b *Browser) FindElement(locator LocatorStrategy, value string) (ElementID, error) {
+func (b *Browser) FindElement(locator LocatorStrategy, value string) (*Element, error) {
 	type rp struct {
 		Using LocatorStrategy `json:"using"`
 		Value string          `json:"value"`
@@ -234,25 +234,25 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (ElementID,
 	}
 	body, err := json.Marshal(rpb)
 	if err != nil {
-		return "", fmt.Errorf("can't marshal json body: %w", err)
+		return &Element{}, fmt.Errorf("can't marshal json body: %w", err)
 	}
 
 	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/element"
 	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
 	if err != nil {
-		return "", fmt.Errorf("can't create a request: %w", err)
+		return &Element{}, fmt.Errorf("can't create a request: %w", err)
 	}
 
 	resp, err := b.driver.Client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("got http response error: %w", err)
+		return &Element{}, fmt.Errorf("got http response error: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		// Fixme: define the struct of error response and handle it.
 		// https://www.w3.org/TR/webdriver/#errors
-		return "", fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+		return &Element{}, fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
 	}
 
 	/**
@@ -269,20 +269,16 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (ElementID,
 	}
 	var rb rf
 	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
-		return "", fmt.Errorf("can't decode response: %w", err)
+		return &Element{}, fmt.Errorf("can't decode response: %w", err)
 	}
 
 	eID, ok := rb.Value[webElementIdentifier]
 	if !ok {
-		return "", fmt.Errorf("got empty element ID: value %#v", rb.Value)
+		return &Element{}, fmt.Errorf("got empty element ID: value %#v", rb.Value)
 	}
 
-	return ElementID(eID), nil
+	return NewElement(ElementID(eID), b.driver, b), nil
 }
-
-// ElementID is an identifier of elements (ex. 84b10d39-94f5-4768-8457-dd218597a1e5).
-// https://www.w3.org/TR/webdriver/#elements
-type ElementID string
 
 // LocatorStrategy is the keyword used to search for elements in the current browsing context.
 // https://www.w3.org/TR/webdriver/#locator-strategies
@@ -295,3 +291,52 @@ const (
 	TagName         LocatorStrategy = "tag name"
 	Xpath           LocatorStrategy = "xpath"
 )
+
+// ElementID is an identifier of elements (ex. 84b10d39-94f5-4768-8457-dd218597a1e5).
+// https://www.w3.org/TR/webdriver/#elements
+type ElementID string
+
+// Element is an identified element by Browser.
+type Element struct {
+	ID      ElementID
+	browser *Browser
+	driver  *WebDriver
+}
+
+// GetText gets the text of Element.
+// https://www.w3.org/TR/webdriver/#get-element-text
+func (e *Element) GetText() (string, error) {
+	u := e.driver.RemoteEndURL.String() +
+		"/session/" + string(e.browser.SessionID) +
+		"/element/" + string(e.ID) + "/text"
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return "", fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := e.driver.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return "", fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	type rf struct {
+		Value string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return "", fmt.Errorf("can't decode response: %w", err)
+	}
+
+	return rb.Value, nil
+}
+
+func NewElement(ID ElementID, driver *WebDriver, browser *Browser) *Element {
+	return &Element{ID: ID, driver: driver, browser: browser}
+}
