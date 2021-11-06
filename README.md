@@ -1,10 +1,11 @@
 # gowd
 
+[![GoDoc](https://godoc.org/github.com/hgsgtk/gowd?status.svg)](https://godoc.org/github.com/hgsgtk/gowd)
 [![MIT License](https://img.shields.io/github/license/hgsgtk/gowd)](https://github.com/hgsgtk/gowd/blob/main/LICENSE)
 
 ## Description
 
-gowd is a WebDriver binding for Go.
+gowd is a WebDriver binding for Go. See [GoDoc](https://godoc.org/github.com/hgsgtk/gowd) for API specification.
 
 ## Getting started
 
