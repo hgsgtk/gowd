@@ -126,8 +126,10 @@ func (e *Element) TakeScreenshot() ([]byte, error) {
 		return nil, fmt.Errorf("can't decode response: %w", err)
 	}
 
+	// Fixme: It is implemented similarly to Browser.TakeScreenshot.
+	// 	I want to refactor it to be common to one.
 	// WebDriver returns a base64 encoded image.
-	// https://www.w3.org/TR/webdriver/#take-screenshot
+	// https://www.w3.org/TR/webdriver/#take-element-screenshot
 	// > Let encoding result be the result of trying encoding a canvas as Base64 canvas.
 	// StdEncoding is the standard base64 encoding, as defined in RFC 4648.
 	bt, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, strings.NewReader(rb.Value)))
