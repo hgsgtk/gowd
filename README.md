@@ -3,8 +3,6 @@
 [![GoDoc](https://godoc.org/github.com/hgsgtk/gowd?status.svg)](https://godoc.org/github.com/hgsgtk/gowd)
 [![MIT License](https://img.shields.io/github/license/hgsgtk/gowd)](https://github.com/hgsgtk/gowd/blob/main/LICENSE)
 
-## Description
-
 gowd is a WebDriver binding for Go. See [GoDoc](https://godoc.org/github.com/hgsgtk/gowd) for API specification.
 
 ## Getting started
@@ -66,7 +64,18 @@ func Example() {
 }
 ```
 
-## Feature list
+## Description
+
+### Supported browser
+
+|Browser|Is supported
+|---|---|
+|Google Chrome|yes|
+|Firefox|no|
+|Safari|no|
+|Microsoft Edge|no|
+
+### Feature list
 
 The following features are supported.
 
@@ -74,6 +83,7 @@ The following features are supported.
 |---|
 |Open browser|
 |Navigate to page|
+|Get current URL|
 |Find element|
 |Get element text|
 |Click element|
