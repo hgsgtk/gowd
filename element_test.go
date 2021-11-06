@@ -25,12 +25,12 @@ func TestElement_TakeScreenshot(t *testing.T) {
 	if err := browser.NavigateTo("https://example.com/"); err != nil {
 		t.Fatalf("failed to navigate a page: %#v", err)
 	}
-	div, err := browser.FindElement(gowd.TagName, "h1")
+	title, err := browser.FindElement(gowd.TagName, "h1")
 	if err != nil {
 		t.Fatalf("failed to find <h1> element: %#v", err)
 	}
 
-	screen, err := div.TakeScreenshot()
+	screen, err := title.TakeScreenshot()
 	if err != nil {
 		t.Fatalf("failed to take screenshot: %#v", err)
 	}
