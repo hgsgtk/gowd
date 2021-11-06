@@ -2,9 +2,12 @@ package gowd
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 )
 
 // SessionID used for communication with WebDriver.
@@ -180,4 +183,52 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (*Element, 
 	}
 
 	return NewElement(ElementID(eID), b.driver, b), nil
+}
+
+// TakeScreenshot takes a screenshot of current browser.
+// https://www.w3.org/TR/webdriver/#take-screenshot
+func (b *Browser) TakeScreenshot() ([]byte, error) {
+	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/screenshot"
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return nil, fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	/**
+	 * Response format is like this.
+	 *
+	 * {
+	 *  "value": "iVBORw0KGgoAAAANSUhEUgAABkAAAASwCAYAAACjAYaXAAABLWlDQ1BTa2lhA...(omit)"
+	 * }
+	 */
+	type rf struct {
+		Value string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return nil, fmt.Errorf("can't decode response: %w", err)
+	}
+
+	// WebDriver returns a base64 encoded image.
+	// https://www.w3.org/TR/webdriver/#take-screenshot
+	// > Let encoding result be the result of trying encoding a canvas as Base64 canvas.
+	// StdEncoding is the standard base64 encoding, as defined in RFC 4648.
+	bt, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, strings.NewReader(rb.Value)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64: %w", err)
+	}
+
+	return bt, nil
 }
