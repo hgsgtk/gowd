@@ -75,7 +75,7 @@ func (wd *WebDriver) New() (*Browser, error) {
 	"capabilities": {
 		"alwaysMatch": {
 			"goog:chromeOptions": {
-				"args": ["--no-sandbox"]
+				"args": ["--no-sandbox", "--headless"]
 			}
 		}
 	}
