@@ -65,3 +65,16 @@ func Example() {
 	}
 }
 ```
+
+## Feature list
+
+The following features are supported.
+
+|Feature|
+|---|
+|Open browser|
+|Navigate to page|
+|Find element|
+|Get element text|
+|Click element|
+|Take screenshot|
