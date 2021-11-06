@@ -1,8 +1,10 @@
 package gowd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -82,4 +84,58 @@ func (e *Element) Click() error {
 	}
 
 	return nil
+}
+
+// TakeScreenshot takes a screenshot of current element.
+// https://www.w3.org/TR/webdriver/#take-element-screenshot
+func (e *Element) TakeScreenshot() ([]byte, error) {
+	u := fmt.Sprintf("%s/session/%s/element/%s/screenshot",
+		e.driver.RemoteEndURL.String(),
+		string(e.browser.SessionID),
+		string(e.ID),
+	)
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		return nil, fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := e.driver.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return nil, fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	/**
+	 * Response format is like this.
+	 *
+	 * {
+	 *  "value": "iVBORw0KGgoAAAANSUhEUgAABkAAAASwCAYAAACjAYaXAAABLWlDQ1BTa2lhA...(omit)"
+	 * }
+	 */
+	type rf struct {
+		Value string `json:"value"`
+	}
+	var rb rf
+	if err := json.NewDecoder(resp.Body).Decode(&rb); err != nil {
+		return nil, fmt.Errorf("can't decode response: %w", err)
+	}
+
+	// Fixme: It is implemented similarly to Browser.TakeScreenshot.
+	// 	I want to refactor it to be common to one.
+	// WebDriver returns a base64 encoded image.
+	// https://www.w3.org/TR/webdriver/#take-element-screenshot
+	// > Let encoding result be the result of trying encoding a canvas as Base64 canvas.
+	// StdEncoding is the standard base64 encoding, as defined in RFC 4648.
+	bt, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, strings.NewReader(rb.Value)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64: %w", err)
+	}
+
+	return bt, nil
 }
