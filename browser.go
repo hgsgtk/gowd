@@ -232,3 +232,30 @@ func (b *Browser) TakeScreenshot() ([]byte, error) {
 
 	return bt, nil
 }
+
+// NewWindow opens a new window tab.
+func (b *Browser) NewWindow() error {
+	// https://www.w3.org/TR/webdriver/#new-window
+	req, err := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("%s/session/%s/window/new", b.driver.RemoteEndURL.String(), string(b.SessionID)),
+		strings.NewReader("{}"),
+	)
+	if err != nil {
+		return fmt.Errorf("can't create a request: %w", err)
+	}
+
+	resp, err := b.driver.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("got http response error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		// Fixme: define the struct of error response and handle it.
+		// https://www.w3.org/TR/webdriver/#errors
+		return fmt.Errorf("got invalid http status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
