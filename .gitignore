@@ -15,4 +15,4 @@
 # vendor/
 
 # Test
-testdata/example.com.png
+dist/*.png

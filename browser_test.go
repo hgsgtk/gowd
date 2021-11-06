@@ -30,7 +30,7 @@ func TestBrowser_TakeScreenshot(t *testing.T) {
 		t.Fatalf("failed to take screenshot: %#v", err)
 	}
 
-	if err := os.WriteFile("testdata/example.com.png", screen, 0664); err != nil {
+	if err := os.WriteFile("dist/example.com.png", screen, 0664); err != nil {
 		t.Fatalf("failed to write a file: %#v", err)
 	}
 
