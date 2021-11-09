@@ -188,7 +188,11 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (*Element, 
 // TakeScreenshot takes a screenshot of current browser.
 // https://www.w3.org/TR/webdriver/#take-screenshot
 func (b *Browser) TakeScreenshot() ([]byte, error) {
-	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/screenshot"
+	u := fmt.Sprintf(
+		"%s/session/%s/screenshot",
+		b.driver.RemoteEndURL.String(),
+		string(b.SessionID),
+	)
 	req, err := http.NewRequest(http.MethodGet, u, nil)
 	if err != nil {
 		return nil, fmt.Errorf("can't create a request: %w", err)
