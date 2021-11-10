@@ -52,7 +52,7 @@ func (r *responseNewSession) UnmarshalJSON(data []byte) error {
 
 func NewWebDriver() *WebDriver {
 	c := http.DefaultClient
-	c.Timeout = 5 * time.Second // choose 3s at random
+	c.Timeout = 5 * time.Second // choose 5s at random
 	// Todo: set a proxy between local end and remote end
 	// https://www.w3.org/TR/webdriver/#nodes
 	ru, err := url.Parse("http://localhost:9515")
