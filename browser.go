@@ -57,7 +57,11 @@ func (b *Browser) NavigateTo(url string) error {
 	}
 
 	// https://www.w3.org/TR/webdriver/#navigate-to
-	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/url"
+	u := fmt.Sprintf(
+		"%s/session/%s/url",
+		b.driver.RemoteEndURL.String(),
+		string(b.SessionID),
+	)
 	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("can't create a request: %w", err)
