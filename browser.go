@@ -23,7 +23,7 @@ type Browser struct {
 
 func (b *Browser) Close() error {
 	// https://www.w3.org/TR/webdriver/#delete-session
-	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID)
+	u := fmt.Sprintf("%s/session/%s", b.driver.RemoteEndURL.String(), string(b.SessionID))
 	req, err := http.NewRequest(http.MethodDelete, u, nil)
 	if err != nil {
 		return fmt.Errorf("can't create a request: %w", err)
