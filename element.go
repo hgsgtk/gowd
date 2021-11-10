@@ -62,9 +62,12 @@ func (e *Element) GetText() (string, error) {
 // Click clicks the element.
 // https://www.w3.org/TR/webdriver/#element-click
 func (e *Element) Click() error {
-	u := e.driver.RemoteEndURL.String() +
-		"/session/" + string(e.browser.SessionID) +
-		"/element/" + string(e.ID) + "/click"
+	u := fmt.Sprintf(
+		"%s/session/%s/element/%s/click",
+		e.driver.RemoteEndURL.String(),
+		string(e.browser.SessionID),
+		string(e.ID),
+	)
 	// The request body should be JSON empty object.
 	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader("{}"))
 	if err != nil {
