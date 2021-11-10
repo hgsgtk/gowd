@@ -83,7 +83,7 @@ func (wd *WebDriver) New() (*Browser, error) {
 `
 
 	// https://www.w3.org/TR/webdriver/#new-session
-	u := wd.RemoteEndURL.String() + "/session"
+	u := fmt.Sprintf("%s/session", wd.RemoteEndURL.String())
 	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(rb))
 	if err != nil {
 		return nil, fmt.Errorf("can't create a request: %w", err)
