@@ -146,7 +146,11 @@ func (b *Browser) FindElement(locator LocatorStrategy, value string) (*Element, 
 		return &Element{}, fmt.Errorf("can't marshal json body: %w", err)
 	}
 
-	u := b.driver.RemoteEndURL.String() + "/session/" + string(b.SessionID) + "/element"
+	u := fmt.Sprintf(
+		"%s/session/%s/element",
+		b.driver.RemoteEndURL.String(),
+		string(b.SessionID),
+	)
 	req, err := http.NewRequest(http.MethodPost, u, bytes.NewBuffer(body))
 	if err != nil {
 		return &Element{}, fmt.Errorf("can't create a request: %w", err)
